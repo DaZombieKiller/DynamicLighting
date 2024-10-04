@@ -1,5 +1,7 @@
 // GENERATE_NORMAL: The variable containing the fragment normal.
 
+if (lightmap_resolution == 0) return;
+
 // calculate the unnormalized direction between the light source and the fragment.
 float3 light_direction = light.position - i.world;
 

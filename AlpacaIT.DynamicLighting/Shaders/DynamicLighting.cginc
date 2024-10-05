@@ -282,7 +282,8 @@ struct DynamicLight
     float calculate_attenuation(float distanceSqr)
     {
         float s = saturate(distanceSqr / radiusSqr);
-        return intensity * pow(1.0 - s, 2.0) / (1.0 + falloff * s);
+        return intensity * saturate(4.0 * (1.0 - s)) * (1.0 / ((s * 25.0) + 1.0));
+        //return intensity * pow(1.0 - s, 2.0) / (1.0 + falloff * s);
     }
 
     #define GENERATE_FUNCTION_NAME calculate_randomshimmer_bilinear

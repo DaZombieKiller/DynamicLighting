@@ -48,9 +48,9 @@ namespace AlpacaIT.DynamicLighting
             photonCameraDepthShader = DynamicLightingResources.Instance.photonCubeShader;
 
 #if UNITY_2021_3_OR_NEWER && !UNITY_2021_3_0 && !UNITY_2021_3_1 && !UNITY_2021_3_2 && !UNITY_2021_3_3 && !UNITY_2021_3_4 && !UNITY_2021_3_5 && !UNITY_2021_3_6 && !UNITY_2021_3_7 && !UNITY_2021_3_8 && !UNITY_2021_3_9 && !UNITY_2021_3_10 && !UNITY_2021_3_11 && !UNITY_2021_3_12 && !UNITY_2021_3_13 && !UNITY_2021_3_14 && !UNITY_2021_3_15 && !UNITY_2021_3_16 && !UNITY_2021_3_17 && !UNITY_2021_3_18 && !UNITY_2021_3_19 && !UNITY_2021_3_20 && !UNITY_2021_3_21 && !UNITY_2021_3_22 && !UNITY_2021_3_23 && !UNITY_2021_3_24 && !UNITY_2021_3_25 && !UNITY_2021_3_26 && !UNITY_2021_3_27
-            photonCameraRenderTextureDescriptor = new RenderTextureDescriptor(photonCameraResolution, photonCameraResolution, RenderTextureFormat.ARGBFloat, 16, 0, RenderTextureReadWrite.Linear);
+            photonCameraRenderTextureDescriptor = new RenderTextureDescriptor(photonCameraResolution, photonCameraResolution, RenderTextureFormat.RGFloat, 16, 0, RenderTextureReadWrite.Linear);
 #else
-            photonCameraRenderTextureDescriptor = new RenderTextureDescriptor(photonCameraResolution, photonCameraResolution, RenderTextureFormat.ARGBFloat, 16, 0);
+            photonCameraRenderTextureDescriptor = new RenderTextureDescriptor(photonCameraResolution, photonCameraResolution, RenderTextureFormat.RGFloat, 16, 0);
 #endif
             photonCameraRenderTextureDescriptor.autoGenerateMips = false;
 
@@ -110,7 +110,8 @@ namespace AlpacaIT.DynamicLighting
         /// <summary>Renders the photon camera for a light source.</summary>
         /// <param name="lightPosition">The world position of the light.</param>
         /// <param name="lightRadius">The radius of the light.</param>
-        private PhotonCube PhotonCameraRender(Vector3 lightPosition, float lightRadius)
+        /// <param name="storeNormals">Whether the world-space normals should be stored.</param>
+        private PhotonCube PhotonCameraRender(Vector3 lightPosition, float lightRadius, bool storeNormals)
         {
             // get a temporary render texture.
             photonCameraRenderTexture = RenderTexture.GetTemporary(photonCameraRenderTextureDescriptor);
@@ -148,7 +149,7 @@ namespace AlpacaIT.DynamicLighting
             RenderTexture.ReleaseTemporary(photonCameraRenderTexture);
 
             // create the photon cube.
-            return new PhotonCube(photonCameraCubemaps);
+            return new PhotonCube(photonCameraCubemaps, lightRadius, storeNormals);
         }
     }
 }

@@ -113,6 +113,11 @@ namespace AlpacaIT.DynamicLighting
         [HideInInspector]
         internal bool activateBounceLightingInCurrentScene;
 
+        /// <summary>The bounce lighting compression mode used during the tracing of the scene.</summary>
+        [SerializeField]
+        [HideInInspector]
+        internal DynamicBounceLightingCompressionMode bounceLightingCompressionInCurrentScene = DynamicBounceLightingCompressionMode.EightBitsPerPixel;
+
         /// <summary>
         /// The settings of the dynamic light manager can be shared across several scenes by
         /// assigning a template here. The values are copied from the template to this instance
@@ -187,6 +192,14 @@ namespace AlpacaIT.DynamicLighting
         [Tooltip("The desired pixel density (e.g. 128 for 128x128 per meter squared). This lighting system does not require \"power of two\" textures. You may have heard this term before because graphics cards can render textures in such sizes much faster. This system relies on binary data on the GPU using compute buffers and it's quite different. Without going into too much detail, this simply means that we can choose any texture size. An intelligent algorithm calculates the surface area of the meshes and determines exactly how many pixels are needed to cover them evenly with shadow pixels, regardless of the ray tracing resolution (unless it exceeds that maximum ray tracing resolution, of course, then those shadow pixels will start to increase in size). Here you can set how many pixels should cover a square meter. It can result in a 47x47 texture or 328x328, exactly the amount needed to cover all polygons with the same amount of shadow pixels. Higher details require more VRAM (exponentially)!")]
         [Min(1)]
         public int pixelDensityPerSquareMeter = 128;
+
+        /// <summary>
+        /// The compression level for bounce lighting data. Choosing a higher compression can reduce
+        /// VRAM usage, but may result in reduced visual quality. For best results, adjust based on
+        /// your VRAM availability and visual preferences.
+        /// </summary>
+        [Tooltip("The compression level for bounce lighting data. Choosing a higher compression can reduce VRAM usage, but may result in reduced visual quality. For best results, adjust based on your VRAM availability and visual preferences.")]
+        public DynamicBounceLightingCompressionMode bounceLightingCompression = DynamicBounceLightingCompressionMode.EightBitsPerPixel;
 
         /// <summary>The collection of raycasted mesh renderers in the scene.</summary>
         [SerializeField]
@@ -1002,6 +1015,7 @@ namespace AlpacaIT.DynamicLighting
             // retrieving the slow information about the light.
             var lightRadius = light.lightRadius;
             var lightColor = light.lightColor;
+            var lightBounceColor = light.lightBounceColor;
             var lightFalloff = light.lightFalloff;
 
             // the first 5 bits are unused (used to be channel index).
@@ -1013,6 +1027,10 @@ namespace AlpacaIT.DynamicLighting
             shaderLight->color.x = lightColor.r;
             shaderLight->color.y = lightColor.g;
             shaderLight->color.z = lightColor.b;
+
+            shaderLight->bounceColor.x = lightColor.r + (lightBounceColor.r - lightColor.r) * lightBounceColor.a;
+            shaderLight->bounceColor.y = lightColor.g + (lightBounceColor.g - lightColor.g) * lightBounceColor.a;
+            shaderLight->bounceColor.z = lightColor.b + (lightBounceColor.b - lightColor.b) * lightBounceColor.a;
 
             shaderLight->radiusSqr = lightRadius * lightRadius;
             shaderLight->falloff = lightRadius * lightFalloff * lightFalloff;
@@ -1230,6 +1248,7 @@ namespace AlpacaIT.DynamicLighting
 #endif
             var tracer = new DynamicLightingTracer();
             tracer.maximumLightmapSize = maximumLightmapSize;
+            tracer.bounceLightingCompression = bounceLightingCompression;
 
             bool cancelled = false;
             tracer.cancelled += (s, e) => { cancelled = true; traceCancelled?.Invoke(this, new DynamicLightingTraceCancelledEventArgs(this)); };

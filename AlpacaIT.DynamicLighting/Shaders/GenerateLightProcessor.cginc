@@ -1,7 +1,5 @@
 // GENERATE_NORMAL: The variable containing the fragment normal.
 
-if (lightmap_resolution == 0) return;
-
 // calculate the unnormalized direction between the light source and the fragment.
 float3 light_direction = light.position - i.world;
 
@@ -59,7 +57,7 @@ float map = 1.0;
 #if DYNAMIC_LIGHTING_BOUNCE
 float bounce = 0.0;
 #endif
-if (lightmap_resolution > 0 && light.is_dynamic())
+if (light.is_dynamic())
 {
 #if DYNAMIC_LIGHTING_SHADOW_SOFT
     // retrieve the shadow bit at this position with bilinear filtering.

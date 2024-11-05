@@ -21,6 +21,23 @@
 #define light_shimmer_water 1 << 10
 #define light_shimmer_random 2 << 10
 
+// define an additional medium quality keyword without using a global keyword.
+//
+// DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS
+// DYNAMIC_LIGHTING_QUALITY_LOW
+// DYNAMIC_LIGHTING_QUALITY_MEDIUM
+// DYNAMIC_LIGHTING_QUALITY_HIGH
+//
+#if !defined(DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS) && !defined(DYNAMIC_LIGHTING_QUALITY_LOW) && !defined(DYNAMIC_LIGHTING_QUALITY_HIGH)
+    #define DYNAMIC_LIGHTING_QUALITY_MEDIUM
+#endif
+
+// switch to guassian shadow sampling when in high quality mode.
+//
+#if defined(DYNAMIC_LIGHTING_QUALITY_HIGH) && !defined(DYNAMIC_LIGHTING_SHADOW_SAMPLER)
+    #define DYNAMIC_LIGHTING_SHADOW_SAMPLER shadow_sample_gaussian5
+#endif
+
 struct DynamicLight
 {
     float3 position;
@@ -371,7 +388,8 @@ struct DynamicTriangle
         lightCount = dynamic_triangles[lightDataOffset++];
         
         // we can crash the gpu driver when we read a garbage light count.
-        if (lightCount > 32) lightCount = 32; // tracing limit is 32 overlapping lights.
+        // 32 overlapping lights limit doesn't restrict a triangle from being hit by more.
+        if (lightCount > 256) lightCount = 256;
     }
     
     // sets the active triangle light index for light related queries.

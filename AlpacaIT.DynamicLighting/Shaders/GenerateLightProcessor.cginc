@@ -103,24 +103,6 @@ else if (bvhLightIndex != -1)
 }
 #endif
 
-#ifndef DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS
-// when the light has a shadow cubemap we sample that for real-time shadows.
-if (light.is_shadow_available())
-{
-    float fragDepth = sqrt(light_distanceSqr / light.radiusSqr);
-    float2 moments = shadow_cubemaps.SampleLevel(sampler_shadow_cubemaps, float4(light_direction, light.shadowCubemapIndex), 0);
-    float2 lit = (float2)0.0f;
-    float E_x2 = moments.y;
-    float Ex_2 = moments.x * moments.x;
-    float variance = E_x2 - Ex_2;
-    float mD = moments.x - fragDepth;
-    float mD_2 = mD * mD;
-    float p = variance / (variance + mD_2);
-    float res = map = max(p, fragDepth - (0.0075 * fragDepth) <= moments.x);
-    map = ReduceLightBleeding(res, max(max(0.3, 1.0 - NdotL), fragDepth));
-}
-#endif
-
 #if defined(DYNAMIC_LIGHTING_BOUNCE) && !defined(DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS)
 // whenever the fragment is fully in shadow we can skip work.
 // confirmed with NVIDIA Quadro K1000M improving the framerate.

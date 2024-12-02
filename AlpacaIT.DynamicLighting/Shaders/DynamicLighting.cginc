@@ -340,9 +340,6 @@ uint realtime_lights_count;
 int triangle_index_submesh_offset;
 uint lightmap_resolution;
 
-TextureCubeArray shadow_cubemaps;
-sampler sampler_shadow_cubemaps;
-
 Texture2DArray light_cookies;
 sampler sampler_light_cookies;
 

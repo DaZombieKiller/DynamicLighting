@@ -578,9 +578,6 @@ namespace AlpacaIT.DynamicLighting
             // -> partial class DynamicLightManager.PostProcessing initialize.
             PostProcessingInitialize();
 
-            // -> partial class DynamicLightManager.ShadowCamera initialize.
-            ShadowCameraInitialize();
-
             // -> partial class DynamicLightManager.LightCookie initialize.
             LightCookieInitialize();
 
@@ -753,9 +750,6 @@ namespace AlpacaIT.DynamicLighting
 
             sceneRealtimeLights = null;
             activeRealtimeLights = null;
-
-            // -> partial class DynamicLightManager.ShadowCamera cleanup.
-            ShadowCameraCleanup();
 
             // -> partial class DynamicLightManager.LightCookie cleanup.
             LightCookieCleanup();
@@ -1047,9 +1041,6 @@ namespace AlpacaIT.DynamicLighting
 
                     if (lightAvailable)
                     {
-                        // -> partial class DynamicLightManager.ShadowCamera.
-                        ShadowCameraProcessLight(shaderLight, light);
-
                         // -> partial class DynamicLightManager.LightCookie.
                         LightCookieProcessLight(shaderLight, light);
 
@@ -1070,9 +1061,6 @@ namespace AlpacaIT.DynamicLighting
 
                     if (lightAvailable)
                     {
-                        // -> partial class DynamicLightManager.ShadowCamera.
-                        ShadowCameraProcessLight(shaderLight, light);
-
                         // -> partial class DynamicLightManager.LightCookie.
                         LightCookieProcessLight(shaderLight, light);
 
@@ -1082,9 +1070,6 @@ namespace AlpacaIT.DynamicLighting
                     }
                 }
             }
-
-            // -> partial class DynamicLightManager.ShadowCamera.
-            ShadowCameraPostUpdate();
 
             // upload the active light data to the graphics card.
             var activeDynamicLightsCount = raycastedDynamicLightsCount + activeRealtimeLightsCount;

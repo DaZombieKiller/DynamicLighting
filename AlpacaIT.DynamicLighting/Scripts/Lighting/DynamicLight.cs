@@ -529,7 +529,7 @@ namespace AlpacaIT.DynamicLighting
 
             if (lightShadows == DynamicLightShadowMode.RealtimeShadows)
             {
-                Gizmos.DrawIcon(transformPosition, "Packages/de.alpacait.dynamiclighting/AlpacaIT.DynamicLighting/Gizmos/DynamicLightingRealtimeShadows.png", true, white);
+                Gizmos.DrawIcon(transformPosition, "Packages/de.alpacait.dynamiclighting/AlpacaIT.DynamicLighting/Gizmos/DynamicLightingRealtimeShadows.png", true, Color.red);
             }
 
             if (lightIllumination == DynamicLightIlluminationMode.SingleBounce)

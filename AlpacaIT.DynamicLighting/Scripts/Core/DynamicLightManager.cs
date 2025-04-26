@@ -19,6 +19,7 @@ namespace AlpacaIT.DynamicLighting
     /// static property <see cref="Instance"/> to access (and create) the singleton <see
     /// cref="DynamicLightManager"/> in the current scene.
     /// </summary>
+    [DefaultExecutionOrder(-999)]
     [ExecuteInEditMode]
     public partial class DynamicLightManager : MonoBehaviour
     {
@@ -925,20 +926,22 @@ namespace AlpacaIT.DynamicLighting
 
             // respect the scene view lighting toggle.
             {
+              if (editorIsPlaying) {
+                ShadersSetKeywordLitEnabled(true);
+              } else {
                 var sceneView = UnityEditor.SceneView.lastActiveSceneView;
                 if (sceneView)
                 {
-                    // apply the unlit rendering property.
-                    if (renderUnlit)
-                        ShadersSetKeywordLitEnabled(false);
-                    else
-                        ShadersSetKeywordLitEnabled(sceneView.sceneLighting);
+                  // apply the unlit rendering property.
+                  if (renderUnlit)
+                    ShadersSetKeywordLitEnabled(false);
+                  else
+                  ShadersSetKeywordLitEnabled(sceneView.sceneLighting);
+                } else {
+                  // apply the unlit rendering property.
+                  ShadersSetKeywordLitEnabled(!renderUnlit);
                 }
-                else
-                {
-                    // apply the unlit rendering property.
-                    ShadersSetKeywordLitEnabled(!renderUnlit);
-                }
+              }
             }
 #else
             // apply the unlit rendering property.

@@ -361,6 +361,10 @@ namespace AlpacaIT.DynamicLighting
 
         [NonSerialized]
         private bool isInitialized = false;
+        [NonSerialized]
+        private bool ranStartCorrection = false;
+
+        public bool RanStartCorrection => ranStartCorrection;
 
 #if UNITY_EDITOR
 
@@ -488,6 +492,8 @@ namespace AlpacaIT.DynamicLighting
                     }
                 }
             }
+
+            ranStartCorrection = true;
         }
 
         /// <summary>Gets whether the specified light source has been raycasted in the scene.</summary>

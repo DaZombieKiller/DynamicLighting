@@ -20,6 +20,7 @@ namespace AlpacaIT.DynamicLighting
     /// static property <see cref="Instance"/> to access (and create) the singleton <see
     /// cref="DynamicLightManager"/> in the current scene.
     /// </summary>
+    [DefaultExecutionOrder(-999)]
     [ExecuteInEditMode]
     public partial class DynamicLightManager : MonoBehaviour
     {
@@ -368,6 +369,11 @@ namespace AlpacaIT.DynamicLighting
         [NonSerialized]
         private bool isInitialized = false;
 
+        [NonSerialized]
+        private bool ranStartCorrection = false;
+
+        public bool RanStartCorrection => ranStartCorrection;
+
 #if UNITY_EDITOR
 
         /// <summary>
@@ -503,6 +509,8 @@ namespace AlpacaIT.DynamicLighting
                     }
                 }
             }
+
+            ranStartCorrection = true;
         }
 
         /// <summary>Gets whether the specified light source has been raycasted in the scene.</summary>
@@ -599,8 +607,10 @@ namespace AlpacaIT.DynamicLighting
             // -> partial class DynamicLightManager.PostProcessing initialize.
             PostProcessingInitialize();
 
+#if false // #GLOOMWOOD
             // -> partial class DynamicLightManager.ShadowCamera initialize.
             ShadowCameraInitialize();
+#endif
 
             // -> partial class DynamicLightManager.LightCookie initialize.
             LightCookieInitialize();
@@ -802,8 +812,10 @@ namespace AlpacaIT.DynamicLighting
             sceneRealtimeLights = null;
             activeRealtimeLights = null;
 
+#if false // #GLOOMWOOD
             // -> partial class DynamicLightManager.ShadowCamera cleanup.
             ShadowCameraCleanup();
+#endif
 
             // -> partial class DynamicLightManager.LightCookie cleanup.
             LightCookieCleanup();
@@ -1112,8 +1124,10 @@ namespace AlpacaIT.DynamicLighting
 
                     if (lightAvailable)
                     {
+#if false // #GLOOMWOOD
                         // -> partial class DynamicLightManager.ShadowCamera.
                         ShadowCameraProcessLight(shaderLight, light);
+#endif
 
                         // -> partial class DynamicLightManager.LightCookie.
                         LightCookieProcessLight(shaderLight, light);
@@ -1135,8 +1149,10 @@ namespace AlpacaIT.DynamicLighting
 
                     if (lightAvailable)
                     {
+#if false // #GLOOMWOOD
                         // -> partial class DynamicLightManager.ShadowCamera.
                         ShadowCameraProcessLight(shaderLight, light);
+#endif
 
                         // -> partial class DynamicLightManager.LightCookie.
                         LightCookieProcessLight(shaderLight, light);
@@ -1148,8 +1164,10 @@ namespace AlpacaIT.DynamicLighting
                 }
             }
 
+#if false // #GLOOMWOOD
             // -> partial class DynamicLightManager.ShadowCamera.
             ShadowCameraPostUpdate();
+#endif
 
             // upload the active light data to the graphics card.
             var activeDynamicLightsCount = raycastedDynamicLightsCount + activeRealtimeLightsCount;

@@ -7,6 +7,7 @@ namespace AlpacaIT.DynamicLighting
 
     public partial class DynamicLightManager
     {
+#if false // #GLOOMWOOD
         /// <summary>All of the shadow camera orientations to take cubemap frames.</summary>
         private static readonly Quaternion[] shadowCameraOrientations = new Quaternion[]
         {
@@ -204,5 +205,6 @@ namespace AlpacaIT.DynamicLighting
             shaderLight->channel |= (uint)1 << 15; // shadow available bit
             shaderLight->shadowCubemapIndex = (uint)shadowCameraCubemapIndex++;
         }
+#endif
     }
 }

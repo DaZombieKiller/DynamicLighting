@@ -119,6 +119,7 @@ else if (bvhLightIndex != -1)
 }
 #endif
 
+#if 0 // #GLOOMWOOD
 #ifndef DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS
 // when the light has a shadow cubemap we sample that for real-time shadows.
 if (light.is_shadow_available())
@@ -134,6 +135,7 @@ if (light.is_shadow_available())
     float res = max(p, fragDepth - (0.0075 * fragDepth) <= moments.x);
     map *= ReduceLightBleeding(res, max(max(0.3, 1.0 - NdotL), fragDepth));
 }
+#endif
 #endif
 
 #if defined(DYNAMIC_LIGHTING_BOUNCE) && !defined(DYNAMIC_LIGHTING_INTEGRATED_GRAPHICS)

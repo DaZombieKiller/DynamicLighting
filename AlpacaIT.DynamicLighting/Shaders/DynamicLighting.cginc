@@ -42,7 +42,7 @@
 // disabled keyword instead of the bvh keyword and implement your own system.
 //
 #if !defined(DYNAMIC_LIGHTING_DYNAMIC_GEOMETRY_DISTANCE_CUBES) && !defined(DYNAMIC_LIGHTING_DYNAMIC_GEOMETRY_ANGULAR)
-    // #define DYNAMIC_LIGHTING_DYNAMIC_GEOMETRY_DISABLED
+    #define DYNAMIC_LIGHTING_DYNAMIC_GEOMETRY_DISABLED // #GLOOMWOOD
 #endif
 
 // switch to guassian shadow sampling when in high quality mode.
@@ -332,7 +332,11 @@ struct DynamicLight
     float calculate_attenuation(float distanceSqr)
     {
         float s = saturate(distanceSqr / radiusSqr);
+    #if 1 // #GLOOMWOOD
+        return intensity * saturate(4.0 * (1.0 - s)) * (1.0 / ((s * 25.0) + 1.0));
+    #else
         return intensity * pow(1.0 - s, 2.0) / (1.0 + falloff * s);
+    #endif
     }
 
     #define GENERATE_FUNCTION_NAME calculate_randomshimmer_trilinear
@@ -347,8 +351,10 @@ uint realtime_lights_count;
 int triangle_index_submesh_offset;
 uint lightmap_resolution;
 
+#if 0 // #GLOOMWOOD
 TextureCubeArray shadow_cubemaps;
 sampler sampler_shadow_cubemaps;
+#endif
 
 Texture2DArray light_cookies;
 sampler sampler_light_cookies;

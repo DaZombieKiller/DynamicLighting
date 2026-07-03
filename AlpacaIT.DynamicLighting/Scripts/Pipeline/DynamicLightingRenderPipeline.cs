@@ -160,7 +160,7 @@ namespace AlpacaIT.DynamicLighting
                 // ------------------------------------------------------------
                 // clear the depth and color of the active render target
                 // ------------------------------------------------------------
-                ClearActiveRenderTarget(cmd);
+                ClearActiveRenderTarget(camera, cmd);
 
                 // ------------------------------------------------------------
                 // built-in render pipeline actions (precull unused in project)
@@ -317,11 +317,26 @@ namespace AlpacaIT.DynamicLighting
             cmd.DrawRendererList(context.CreateRendererList(rendererListDesc));
         }
 
-        /// <summary>Clears the active render target (color and depth) to zero on all channels.</summary>
+        /// <summary>Clears the active render target (color or depth) to zero on all channels, depending on the camera settings.</summary>
         /// <param name="cmd">The command buffer to be appended.</param>
-        private static void ClearActiveRenderTarget(CommandBuffer cmd)
+        private static unsafe void ClearActiveRenderTarget(Camera camera, CommandBuffer cmd)
         {
-            cmd.ClearRenderTarget(true, true, new Color(0.0f, 0.0f, 0.0f, 0.0f));
+            switch (camera.clearFlags)
+            {
+                case CameraClearFlags.Skybox:
+                case CameraClearFlags.SolidColor:
+
+                    Color result = camera.backgroundColor;
+                    if (DynamicLightManager.colorSpace == ColorSpace.Linear)
+                        UMath.GammaToLinearSpace((Vector3*)&result);
+                    cmd.ClearRenderTarget(true, true, result);
+                    break;
+                case CameraClearFlags.Depth:
+                    cmd.ClearRenderTarget(true, false, Color.black);
+                    break;
+                case CameraClearFlags.Nothing:
+                    break;
+            }
         }
 
         /// <summary>Sets up a replacement shader pass for special Dynamic Lighting cameras.</summary>

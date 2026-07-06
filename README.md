@@ -26,10 +26,8 @@ However, real-time shadows and standard Unity lights with real-time shadows are 
 
 It utilizes straightforward custom shaders similar to Unity's Standard shader and is compatible with:
 
-✅ Built-in Rendering Pipeline (BiRP).
-
-✅ Universal Render Pipeline (URP).
-
+✅ Built-in Rendering Pipeline (BiRP).\
+✅ Universal Render Pipeline (URP).\
 🔧 Dynamic Lighting Render Pipeline (DLRP a work in progress).
 
 The minimum Unity Editor requirement is 2021.2.18f1 up to and including Unity 6.7.

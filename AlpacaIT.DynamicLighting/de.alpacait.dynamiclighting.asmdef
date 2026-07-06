@@ -4,7 +4,8 @@
     "references": [
         "Unity.Mathematics",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.Postprocessing.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -18,6 +19,11 @@
             "name": "com.unity.render-pipelines.universal",
             "expression": "",
             "define": "UNITY_PIPELINE_URP"
+        },
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "",
+            "define": "UNITY_POSTPROCESSING"
         }
     ],
     "noEngineReferences": false

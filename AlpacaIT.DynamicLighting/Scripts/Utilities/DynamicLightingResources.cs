@@ -54,5 +54,6 @@ namespace AlpacaIT.DynamicLighting
         public Material photonCameraPhotonCubeMaterial;
         public Material pipelineDefaultMaterial;
         public Shader pipelineDefaultShader;
+        public Material blitColorDepthMaterial;
     }
 }

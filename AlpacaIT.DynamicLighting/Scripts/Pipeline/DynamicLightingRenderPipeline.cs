@@ -103,6 +103,17 @@ namespace AlpacaIT.DynamicLighting
         /// <summary>The photon replacement shader.</summary>
         private readonly Shader photonShader;
 
+        /// <summary>Unique identifier for shader property "_CameraOpaqueTexture".</summary>
+        private readonly int shaderCameraOpaqueTextureId;
+
+        /// <summary>Unique identifier for shader property "_CameraDepthTexture".</summary>
+        private readonly int shaderCameraDepthTextureId;
+
+#if UNITY_POSTPROCESSING
+        /// <summary>Support for the Post Processing Stack v2 (com.unity.postprocessing).</summary>
+        private readonly UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext;
+#endif
+
         /// <summary>
         /// Creates a new instance of the Dynamic Lighting Render Pipeline (DLRP).
         /// <para>
@@ -126,6 +137,14 @@ namespace AlpacaIT.DynamicLighting
             onPreTransparentEventArgs = new(this);
             onPostTransparentEventArgs = new(this);
             onPostProcessEventArgs = new(this);
+
+            shaderCameraOpaqueTextureId = Shader.PropertyToID("_CameraOpaqueTexture");
+            shaderCameraDepthTextureId = Shader.PropertyToID("_CameraDepthTexture");
+
+#if UNITY_POSTPROCESSING
+            // prepare the post processing stack support.
+            postProcessRenderContext = new();
+#endif
         }
 
         /// <summary>Called by Unity whenever rendering has to occur.</summary>
@@ -138,6 +157,8 @@ namespace AlpacaIT.DynamicLighting
             for (int i = 0; i < camerasCount; i++)
             {
                 var camera = cameras[i];
+                var cameraPixelWidth = camera.pixelWidth;
+                var cameraPixelHeight = camera.pixelHeight;
 
                 // ------------------------------------------------------------
                 // built-in render pipeline actions (fixes material peviews).
@@ -156,6 +177,14 @@ namespace AlpacaIT.DynamicLighting
                 // begin the rendering process
                 // ------------------------------------------------------------
                 using var cmd = new CommandBuffer();
+
+                // ------------------------------------------------------------
+                // create custom render targets for color and depth
+                // ------------------------------------------------------------
+                var cameraOpaqueTextureFormat = camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+                cmd.GetTemporaryRT(shaderCameraOpaqueTextureId, cameraPixelWidth, cameraPixelHeight, 0, FilterMode.Bilinear, cameraOpaqueTextureFormat);
+                cmd.GetTemporaryRT(shaderCameraDepthTextureId, cameraPixelWidth, cameraPixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                cmd.SetRenderTarget((RenderTargetIdentifier)shaderCameraOpaqueTextureId, (RenderTargetIdentifier)shaderCameraDepthTextureId);
 
                 // ------------------------------------------------------------
                 // clear the depth and color of the active render target
@@ -199,6 +228,7 @@ namespace AlpacaIT.DynamicLighting
                 DrawTransparentScene(context, camera, culling, cameraType, cmd);
                 onPostTransparentEventArgs.Setup(context, camera, culling, cmd);
                 onPostTransparent?.Invoke(this, onPostTransparentEventArgs);
+
 #if UNITY_EDITOR
                 // ------------------------------------------------------------
                 // draw editor gizmos before post processing
@@ -210,6 +240,30 @@ namespace AlpacaIT.DynamicLighting
                 // ------------------------------------------------------------
                 onPostProcessEventArgs.Setup(context, camera, culling, cmd);
                 onPostProcess?.Invoke(this, onPostProcessEventArgs);
+
+#if UNITY_POSTPROCESSING
+                if (camera.TryGetComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>(out var postProcessLayer) && postProcessLayer.enabled)
+                {
+                    var b = Shader.PropertyToID("_HenrysPipelineFX");
+                    cmd.GetTemporaryRT(b, cameraPixelWidth, cameraPixelHeight, 0, FilterMode.Bilinear, cameraOpaqueTextureFormat);
+
+                    postProcessRenderContext.Reset();
+                    postProcessRenderContext.camera = camera;
+                    postProcessRenderContext.command = cmd;
+                    postProcessRenderContext.source = shaderCameraOpaqueTextureId;
+                    postProcessRenderContext.sourceFormat = cameraOpaqueTextureFormat;
+                    postProcessRenderContext.destination = b;
+                    postProcessRenderContext.flip = false;
+
+                    postProcessLayer.Render(postProcessRenderContext);
+
+                    cmd.Blit(b, BuiltinRenderTextureType.CameraTarget, DynamicLightingResources.Instance.blitColorDepthMaterial);
+                    cmd.ReleaseTemporaryRT(b);
+                }
+                else
+#endif
+                cmd.Blit(shaderCameraOpaqueTextureId, BuiltinRenderTextureType.CameraTarget, DynamicLightingResources.Instance.blitColorDepthMaterial);
+
 #if UNITY_EDITOR
                 // ------------------------------------------------------------
                 // draw the editor debug wireframe overlay
@@ -221,6 +275,12 @@ namespace AlpacaIT.DynamicLighting
                 // ------------------------------------------------------------
                 DrawEditorGizmos(context, camera, cmd, GizmoSubset.PostImageEffects);
 #endif
+                // ------------------------------------------------------------
+                // release temporary resources
+                // ------------------------------------------------------------
+                cmd.ReleaseTemporaryRT(shaderCameraOpaqueTextureId);
+                cmd.ReleaseTemporaryRT(shaderCameraDepthTextureId);
+
                 // ------------------------------------------------------------
                 // finish the rendering process
                 // ------------------------------------------------------------

@@ -63,7 +63,8 @@ namespace AlpacaIT.DynamicLighting
         /// <param name="camera">The camera that begins rendering.</param>
         private void OnBeginCameraRendering(UnityEngine.Rendering.ScriptableRenderContext context, Camera camera)
         {
-            if (camera != this.camera) return;
+            if (camera != this.camera)
+                return;
 
             cameraUniversalAdditionalCameraData.scriptableRenderer.EnqueuePass(replacementShaderPass);
         }
@@ -88,13 +89,13 @@ namespace AlpacaIT.DynamicLighting
             private static readonly System.Collections.Generic.List<UnityEngine.Rendering.ShaderTagId> m_ShaderTagIdList = new System.Collections.Generic.List<UnityEngine.Rendering.ShaderTagId>
             {
                 new UnityEngine.Rendering.ShaderTagId("UniversalForward"),
-                new UnityEngine.Rendering.ShaderTagId("SRPDefaultUnlit")
+                new UnityEngine.Rendering.ShaderTagId("SRPDefaultUnlit"),
             };
 
             public ReplacementShaderPass(Material replacementMaterial)
             {
                 this.replacementMaterial = replacementMaterial;
-                renderPassEvent = UnityEngine.Rendering.Universal.RenderPassEvent.AfterRenderingOpaques;
+                renderPassEvent = UnityEngine.Rendering.Universal.RenderPassEvent.AfterRenderingTransparents;
             }
 
             public override void RecordRenderGraph(UnityEngine.Rendering.RenderGraphModule.RenderGraph renderGraph, UnityEngine.Rendering.ContextContainer frameContext)
@@ -110,10 +111,10 @@ namespace AlpacaIT.DynamicLighting
                     // setup drawing and filtering.
                     var sortingCriteria = cameraData.defaultOpaqueSortFlags;
                     var drawingSettings = UnityEngine.Rendering.Universal.RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData, cameraData, lightData, sortingCriteria);
-                    drawingSettings.overrideMaterial = replacementMaterial;
-                    drawingSettings.overrideMaterialPassIndex = 0;
+                    drawingSettings.overrideShader = replacementMaterial.shader;
+                    drawingSettings.overrideShaderPassIndex = 1;
 
-                    var filteringSettings = new UnityEngine.Rendering.FilteringSettings(UnityEngine.Rendering.RenderQueueRange.opaque);
+                    var filteringSettings = new UnityEngine.Rendering.FilteringSettings(UnityEngine.Rendering.RenderQueueRange.all);
 
                     // Create renderer list params and handle.
                     var rendererListParams = new UnityEngine.Rendering.RendererListParams(renderingData.cullResults, drawingSettings, filteringSettings);
@@ -125,10 +126,12 @@ namespace AlpacaIT.DynamicLighting
                     builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, UnityEngine.Rendering.RenderGraphModule.AccessFlags.Write);
 
                     // Define the execute function (static to avoid allocations).
-                    builder.SetRenderFunc(static (PassData data, UnityEngine.Rendering.RenderGraphModule.RasterGraphContext rgContext) =>
-                    {
-                        rgContext.cmd.DrawRendererList(data.rendererListHandle);
-                    });
+                    builder.SetRenderFunc(
+                        static (PassData data, UnityEngine.Rendering.RenderGraphModule.RasterGraphContext rgContext) =>
+                        {
+                            rgContext.cmd.DrawRendererList(data.rendererListHandle);
+                        }
+                    );
                 }
             }
 
@@ -159,13 +162,11 @@ namespace AlpacaIT.DynamicLighting
 
         /// <summary>Does nothing (empty function call).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize()
-        { }
+        public void Initialize() { }
 
         /// <summary>Does nothing (empty function call).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Cleanup()
-        { }
+        public void Cleanup() { }
 
         /// <summary>Simply calls <see cref="Camera.Render"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

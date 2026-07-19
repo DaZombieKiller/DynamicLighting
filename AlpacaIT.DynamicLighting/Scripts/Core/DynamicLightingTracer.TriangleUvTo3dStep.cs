@@ -135,7 +135,7 @@ namespace AlpacaIT.DynamicLighting
                     Vector2 uv; _ = &uv;
                     uv.x = xx + inHalf;
                     uv.y = yy + inHalf;
-                    outWorldPositionsPtr[i] = MathEx.UvTo3dFast(inTriangleSurfaceArea, uv, inVertex1, inVertex2, inVertex3, inUv1, inUv2, inUv3);
+                    MathEx.UvTo3dFast(inTriangleSurfaceArea, uv, inVertex1, inVertex2, inVertex3, inUv1, inUv2, inUv3, &outWorldPositionsPtr[i]);
                 }
             }
 

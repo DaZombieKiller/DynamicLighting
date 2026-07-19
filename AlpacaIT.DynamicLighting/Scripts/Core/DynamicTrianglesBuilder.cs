@@ -40,8 +40,10 @@ namespace AlpacaIT.DynamicLighting
         {
             /// <summary>The x-position of the bounds of the triangle.</summary>
             public uint boundsX;
+
             /// <summary>The y-position of the bounds of the triangle.</summary>
             public uint boundsY;
+
             /// <summary>The width of the bounds of the triangle.</summary>
             public uint boundsW;
 
@@ -143,15 +145,11 @@ namespace AlpacaIT.DynamicLighting
         /// <returns>The list of raycasted light indices in the scene.</returns>
         public IReadOnlyList<uint> GetRaycastedLightIndices(int triangleIndex)
         {
-            var result = new List<uint>();
-
-            var lightsCount = triangles[triangleIndex].lights.Count;
+            var triangle = triangles[triangleIndex];
+            var lightsCount = triangle.lights.Count;
+            var result = new List<uint>(lightsCount);
             for (int i = 0; i < lightsCount; i++)
-            {
-                var lightData = triangles[triangleIndex].lights[i];
-                result.Add(lightData.dynamicLightIndex);
-            }
-
+                result.Add(triangle.lights[i].dynamicLightIndex);
             return result;
         }
 
@@ -308,14 +306,14 @@ namespace AlpacaIT.DynamicLighting
                     var shadowOcclusionBits = GetShadowOcclusionBits(triangleIndex, lightIndex);
                     if (shadowOcclusionBits != null)
                     {
-                        buffer.AddRange(GetShadowOcclusionBits(triangleIndex, lightIndex).ToUInt32Array());
-                        buffer[(int)(bufferTriangleOffset)] = lightDataOffset;
+                        buffer.AddRange(shadowOcclusionBits.ToUInt32Array());
+                        buffer[(int)bufferTriangleOffset] = lightDataOffset;
                     }
                     else
                     {
                         // the shader can skip all shadow bits related work.
                         //buffer.Add(0);
-                        buffer[(int)(bufferTriangleOffset)] = 0;
+                        buffer[(int)bufferTriangleOffset] = 0;
                     }
                     lightDataOffset = (uint)buffer.Count;
 
@@ -454,7 +452,8 @@ namespace AlpacaIT.DynamicLighting
                         if (color > 0.001f)
                         {
                             float rng = color + UnityEngine.Random.Range(0.0f, 0.004f);
-                            if (rng > 1.0f) rng = 1.0f;
+                            if (rng > 1.0f)
+                                rng = 1.0f;
                             color = rng;
                         }
 
@@ -514,7 +513,8 @@ namespace AlpacaIT.DynamicLighting
                         if (color > 0.001f)
                         {
                             float rng = color + UnityEngine.Random.Range(0.0f, 0.008f);
-                            if (rng > 1.0f) rng = 1.0f;
+                            if (rng > 1.0f)
+                                rng = 1.0f;
                             color = rng;
                         }
 
@@ -574,7 +574,8 @@ namespace AlpacaIT.DynamicLighting
                         if (color > 0.001f)
                         {
                             float rng = color + UnityEngine.Random.Range(0.0f, 0.02f);
-                            if (rng > 1.0f) rng = 1.0f;
+                            if (rng > 1.0f)
+                                rng = 1.0f;
                             color = rng;
                         }
 

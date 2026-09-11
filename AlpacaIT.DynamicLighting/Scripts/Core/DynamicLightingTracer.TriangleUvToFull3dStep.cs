@@ -173,9 +173,8 @@ namespace AlpacaIT.DynamicLighting
                     uv.x = xx + inHalf;
                     uv.y = yy + inHalf;
 
-                    // todo: can optimize the calculations as a lot is identical between these two calls.
-                    outWorldPositionsPtr[i] = MathEx.UvTo3dFast(inTriangleSurfaceArea, uv, inVertex1, inVertex2, inVertex3, inUv1, inUv2, inUv3);
-                    outWorldNormalsPtr[i] = MathEx.UvTo3dFast(inTriangleSurfaceArea, uv, inNormal1, inNormal2, inNormal3, inUv1, inUv2, inUv3);
+                    // compute world position and normal simultaneously.
+                    MathEx.UvTo3dFastFull(inTriangleSurfaceArea, uv, inVertex1, inVertex2, inVertex3, inNormal1, inNormal2, inNormal3, inUv1, inUv2, inUv3, &outWorldPositionsPtr[i], &outWorldNormalsPtr[i]);
                 }
             }
 

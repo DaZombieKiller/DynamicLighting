@@ -70,7 +70,7 @@ namespace AlpacaIT.DynamicLighting
         /// <param name="radius">The radius of the sphere.</param>
         /// <returns>The bounding box encompassing the given sphere.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe FastBounds GetSphereBounds(Vector3 center, float radius)
+        public static FastBounds GetSphereBounds(Vector3 center, float radius)
         {
             FastBounds bounds;
             bounds.center = center;
@@ -236,19 +236,40 @@ namespace AlpacaIT.DynamicLighting
         /// The point converted to vertex-space or else <see cref="Vector3.zero"/> when outside of
         /// the triangle's uv-coordinates.
         /// </returns>
-        public static Vector3 UvTo3dFast(float triangleSurfaceArea, Vector2 uv, Vector3 v1, Vector3 v2, Vector3 v3, Vector2 t1, Vector2 t2, Vector2 t3)
+        public static unsafe void UvTo3dFast(float triangleSurfaceArea, Vector2 uv, Vector3 v1, Vector3 v2, Vector3 v3, Vector2 t1, Vector2 t2, Vector2 t3, Vector3* outPosition)
         {
             // calculate barycentric coordinates of u1, u2 and u3.
             // if anyone is negative, point is outside the triangle: skip it.
-            var a1 = SignedTriangleArea(t2, t3, uv) / triangleSurfaceArea; if (a1 < 0f) { v1.x = 0; v1.y = 0; v1.z = 0; return v1; } // prevent call to Vector3.zero
-            var a2 = SignedTriangleArea(t3, t1, uv) / triangleSurfaceArea; if (a2 < 0f) { v1.x = 0; v1.y = 0; v1.z = 0; return v1; }
-            var a3 = SignedTriangleArea(t1, t2, uv) / triangleSurfaceArea; if (a3 < 0f) { v1.x = 0; v1.y = 0; v1.z = 0; return v1; }
+            var a1 = SignedTriangleArea(t2, t3, uv) / triangleSurfaceArea; if (a1 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; return; } // prevent call to Vector3.zero
+            var a2 = SignedTriangleArea(t3, t1, uv) / triangleSurfaceArea; if (a2 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; return; }
+            var a3 = SignedTriangleArea(t1, t2, uv) / triangleSurfaceArea; if (a3 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; return; }
 
             // point inside the triangle - find mesh position by interpolation.
-            v1.x = a1 * v1.x + a2 * v2.x + a3 * v3.x;
-            v1.y = a1 * v1.y + a2 * v2.y + a3 * v3.y;
-            v1.z = a1 * v1.z + a2 * v2.z + a3 * v3.z;
-            return v1;
+            outPosition->x = a1 * v1.x + a2 * v2.x + a3 * v3.x;
+            outPosition->y = a1 * v1.y + a2 * v2.y + a3 * v3.y;
+            outPosition->z = a1 * v1.z + a2 * v2.z + a3 * v3.z;
+        }
+
+        /// <summary>
+        /// Same as the <see cref="UvTo3dFast"/> but we compute position and normal simultaneously (faster).
+        /// </summary>
+        public static unsafe void UvTo3dFastFull(float triangleSurfaceArea, Vector2 uv, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 n1, Vector3 n2, Vector3 n3, Vector2 t1, Vector2 t2, Vector2 t3, Vector3* outPosition, Vector3* outNormal)
+        {
+            // calculate barycentric coordinates once for both attributes.
+            // if anyone is negative, point is outside the triangle: skip it.
+            var a1 = SignedTriangleArea(t2, t3, uv) / triangleSurfaceArea; if (a1 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; outNormal->x = 0; outNormal->y = 0; outNormal->z = 0; return; } // prevent call to Vector3.zero
+            var a2 = SignedTriangleArea(t3, t1, uv) / triangleSurfaceArea; if (a2 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; outNormal->x = 0; outNormal->y = 0; outNormal->z = 0; return; }
+            var a3 = SignedTriangleArea(t1, t2, uv) / triangleSurfaceArea; if (a3 < 0f) { outPosition->x = 0; outPosition->y = 0; outPosition->z = 0; outNormal->x = 0; outNormal->y = 0; outNormal->z = 0; return; }
+
+            // point inside the triangle - find mesh position by interpolation.
+            outPosition->x = a1 * v1.x + a2 * v2.x + a3 * v3.x;
+            outPosition->y = a1 * v1.y + a2 * v2.y + a3 * v3.y;
+            outPosition->z = a1 * v1.z + a2 * v2.z + a3 * v3.z;
+
+            // point inside the triangle - find mesh normal by interpolation.
+            outNormal->x = a1 * n1.x + a2 * n2.x + a3 * n3.x;
+            outNormal->y = a1 * n1.y + a2 * n2.y + a3 * n3.y;
+            outNormal->z = a1 * n1.z + a2 * n2.z + a3 * n3.z;
         }
 
         /// <summary>

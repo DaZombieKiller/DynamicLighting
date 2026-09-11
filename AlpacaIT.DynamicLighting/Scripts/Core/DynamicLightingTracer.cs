@@ -298,9 +298,11 @@ namespace AlpacaIT.DynamicLighting
                 log.Append("Dynamic Triangles Optimization: ").Append(optimizationLightsRemoved).Append(" Light Sources Removed (").Append(optimizationTime.ToString()).AppendLine(")");
                 log.Append("Building Shadows: ").AppendLine(buildShadowsTime.ToString());
                 log.AppendLine("--------------------------------");
+                // csharpier-ignore
                 log.Append("VRAM Dynamic Triangles: ").Append(MathEx.BytesToUnitString(vramDynamicTrianglesTotal)).Append(" (Legacy: ").Append(MathEx.BytesToUnitString(vramLegacyTotal)).AppendLine(")");
                 log.Append("VRAM Bounding Volume Hierarchy: ").AppendLine(MathEx.BytesToUnitString(vramBvhTotal));
                 log.Append("VRAM Distance Cubes: ").AppendLine(MathEx.BytesToUnitString(vramDistanceCubesTotal));
+                // csharpier-ignore
                 log.Insert(0, $"The lighting uses {MathEx.BytesToUnitString(vramDynamicTrianglesTotal + vramBvhTotal + vramDistanceCubesTotal)} VRAM on the graphics card to render the current scene ({totalTime}).{System.Environment.NewLine}");
 
                 Debug.Log(log.ToString());
@@ -562,7 +564,7 @@ namespace AlpacaIT.DynamicLighting
                 // optimization only works when light bouncing is disabled for this light source.
                 // when normals are all the same (flat shading) then we can exclude triangles facing
                 // away from the light early on here.
-                if (triangleNormalValid && (light.lightIllumination == DynamicLightIlluminationMode.DirectIllumination || tracerFlags.HasFlag(DynamicLightingTracerFlags.SkipBounceLighting)) && n1.ApproximatelyEquals(n2) && n2.ApproximatelyEquals(n3))
+                if (triangleNormalValid && (!bounceLightingInScene || light.lightIllumination == DynamicLightIlluminationMode.DirectIllumination) && n1.ApproximatelyEquals(n2) && n2.ApproximatelyEquals(n3))
                 {
                     // [unsafe] lightDirection = (lightPosition - triangleCenter).normalized
                     lightDirection = lightPosition;
@@ -633,8 +635,8 @@ namespace AlpacaIT.DynamicLighting
                 var lightRadius = pointLight.lightRadius;
                 var lightRadiusSqr = lightRadius * lightRadius;
                 var lightTransparency = pointLight.lightTransparency;
-                var lightChannel = (int)pointLight.lightChannel;
-                raycastCommandMeta.lightChannel = lightChannel;
+                var lightChannelBit = 1u << (int)pointLight.lightChannel;
+                raycastCommandMeta.lightChannelBit = lightChannelBit;
 
                 int ptr = 0;
                 for (int y = minY; y <= maxY; y++)
@@ -673,14 +675,14 @@ namespace AlpacaIT.DynamicLighting
                             {
                                 if (lightPhotonCube.SampleShadowMax(lightDirection, lightDistanceToWorld, triangleNormal))
                                 {
-                                    pixels_lightmap[xyPtr] |= (uint)1 << lightChannel;
+                                    pixels_lightmap[xyPtr] |= lightChannelBit;
                                 }
                             }
                             else
                             {
                                 if (lightPhotonCube.SampleShadow(lightDirection, lightDistanceToWorld, triangleNormal))
                                 {
-                                    pixels_lightmap[xyPtr] |= (uint)1 << lightChannel;
+                                    pixels_lightmap[xyPtr] |= lightChannelBit;
                                 }
                             }
                         }
@@ -728,6 +730,7 @@ namespace AlpacaIT.DynamicLighting
             /// <code>y * lightmapSize + x</code>
             /// </summary>
             private int xyPtr;
+
             private float* pixelsBouncePtr;
             private Vector3 surfaceNormal;
             private float lightBounceIntensity;
@@ -966,7 +969,7 @@ namespace AlpacaIT.DynamicLighting
                     continue;
 
                 var pointLight = pointLights[triangleRaycastedLightIndices[i]];
-                var lightChannelBit = (uint)1 << ((int)pointLight.lightChannel);
+                var lightChannelBit = 1u << ((int)pointLight.lightChannel);
                 var lightFound = false;
 
                 for (int y = minY; y < maxY; y++)
@@ -1039,7 +1042,7 @@ namespace AlpacaIT.DynamicLighting
             for (int i = 0; i < triangleRaycastedLightIndicesCount; i++)
             {
                 var pointLight = pointLights[triangleRaycastedLightIndices[i]];
-                var lightChannelBit = (uint)1 << ((int)pointLight.lightChannel);
+                var lightChannelBit = 1u << ((int)pointLight.lightChannel);
 
                 // intentionally add 2px padding, as the shader with bilinear filtering will
                 // otherwise read outside the bounds on the UV borders, causing visual artifacts to

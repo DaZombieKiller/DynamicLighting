@@ -154,7 +154,7 @@ namespace AlpacaIT.DynamicLighting
                     if (hit->distance == 0f && hit->point.Equals(Vector3.zero))
 #endif
                     {
-                        p[meta.xyPtr] |= (uint)1 << meta.lightChannel;
+                        p[meta.xyPtr] |= meta.lightChannelBit;
                     }
                 }
             }

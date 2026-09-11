@@ -68,10 +68,11 @@ namespace AlpacaIT.DynamicLighting
             // the mesh renderer component must be enabled.
             if (!meshRenderer.enabled)
                 return false;
-
+#if false // #GLOOMWOOD
             // the mesh renderer must have shadow casting enabled.
             if (meshRenderer.shadowCastingMode == ShadowCastingMode.Off)
                 return false;
+#endif
 #if UNITY_EDITOR
             // get the transform of the original game object.
             var originalTransform = meshFilter.transform;
